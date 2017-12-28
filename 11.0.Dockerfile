@@ -51,11 +51,6 @@ RUN apt-get -qq update \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get update \
     && apt-get install -yqq --no-install-recommends nodejs postgresql-client \
-    && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.stretch_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c - \
-    && apt-get install -yqq --no-install-recommends ./wkhtmltox.deb \
-    && rm wkhtmltox.deb \
-    && wkhtmltopdf --version \
     && apt-get -yqq purge python2.7 \
     && apt-get -yqq autoremove \
     && rm -Rf /var/lib/apt/lists/*
@@ -85,6 +80,9 @@ RUN mkdir -p auto/addons custom/src/private \
     && chmod -R a+rX /usr/local/lib/python3.5/dist-packages/odoobaselib \
     && ln -s $(which python3) /usr/local/bin/python \
     && sync
+
+# Special case for wkhtmltox
+RUN install-wkhtmltopdf.sh
 
 # Execute installation script by Odoo version
 # This is at the end to benefit from cache at build time

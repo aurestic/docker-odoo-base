@@ -93,7 +93,8 @@ RUN mkdir -p auto/addons custom/src/private \
 # https://docs.docker.com/engine/reference/builder/#/impact-on-build-caching
 ARG ODOO_SOURCE=OCA/OCB
 ARG ODOO_VERSION=10.0
-ENV ODOO_VERSION="$ODOO_VERSION"
+ENV ODOO_SOURCE="$ODOO_SOURCE" \
+    ODOO_VERSION="$ODOO_VERSION"
 RUN install.sh
 RUN pip install pg_activity
 

@@ -4,7 +4,7 @@
         # Shallow repositores are faster & thinner
         depth: $DEPTH_DEFAULT
     remotes:
-        ocb: https://github.com/OCA/OCB.git
+        ocb: https://github.com/${ODOO_SOURCE}.git
         odoo: https://github.com/odoo/odoo.git
     target:
         ocb $ODOO_VERSION

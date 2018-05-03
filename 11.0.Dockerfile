@@ -91,7 +91,8 @@ RUN mkdir -p auto/addons custom/src/private \
 # https://docs.docker.com/engine/reference/builder/#/impact-on-build-caching
 ARG ODOO_SOURCE=OCA/OCB
 ARG ODOO_VERSION=11.0
-ENV ODOO_VERSION="$ODOO_VERSION"
+ENV ODOO_SOURCE="$ODOO_SOURCE" \
+    ODOO_VERSION="$ODOO_VERSION"
 RUN apt-get update \
     && apt-get install -y \
         build-essential \

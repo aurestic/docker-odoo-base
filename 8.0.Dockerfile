@@ -99,7 +99,7 @@ RUN pip install pg_activity
 
 # HACK Special case for Werkzeug
 USER odoo
-RUN pip install --user Werkzeug==0.14.1
+RUN pip install --user Werkzeug==0.9.6
 
 # Metadata
 ARG VCS_REF

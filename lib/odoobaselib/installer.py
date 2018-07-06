@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 from collections import OrderedDict
 from os.path import exists
 from subprocess import check_call
-from odoobaselib import logger
+from odoobaselib import DEBUG_EXEC_TIMES, logger
 
 
 class Installer(object):
@@ -17,7 +18,22 @@ class Installer(object):
 
     def _run_command(self, command):
         logger.info("Executing: %s", command)
-        return check_call(command, shell=isinstance(command, str))
+        shell = isinstance(command, str)
+        if DEBUG_EXEC_TIMES:
+            log_level = logger.getEffectiveLevel()
+            if shell:
+                command = ' '.join([
+                    "/usr/bin/time",
+                    "-v" if log_level <= logging.DEBUG else "",
+                    "--",
+                    command,
+                ])
+            else:
+                time = ["/usr/bin/time", "--"]
+                if log_level <= logging.DEBUG:
+                    time.insert(1, '-v')
+                command = time + command
+        return check_call(command, shell=shell)
 
     def cleanup(self):
         """Remove cache and other garbage produced by the installer engine."""

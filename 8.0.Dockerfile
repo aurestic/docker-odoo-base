@@ -44,7 +44,7 @@ RUN apt-get update \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
         locales-all zlibc \
         bzip2 ca-certificates curl gettext-base git nano \
-        openssh-client telnet xz-utils \
+        openssh-client telnet xz-utils time \
     && curl https://bootstrap.pypa.io/get-pip.py | python /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get install -yqq nodejs \
@@ -160,6 +160,9 @@ ONBUILD ARG LOCAL_CUSTOM_DIR=./custom
 ONBUILD COPY $LOCAL_CUSTOM_DIR /opt/odoo/custom
 # https://docs.python.org/2.7/library/logging.html#levels
 ONBUILD ARG LOG_LEVEL=INFO
+ONBUILD ARG DEBUG_EXEC_TIMES=false
+ONBUILD ENV LOG_LEVEL="$LOG_LEVEL" \
+            DEBUG_EXEC_TIMES="$DEBUG_EXEC_TIMES"
 ONBUILD RUN mkdir -p /opt/odoo/custom/ssh \
             && ln -s /opt/odoo/custom/ssh ~root/.ssh \
             && chmod -R u=rwX,go= /opt/odoo/custom/ssh \

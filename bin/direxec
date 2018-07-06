@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+import logging
 import os
 import subprocess
 import sys
 
 from psycopg2 import connect, OperationalError
 
-from odoobaselib import logger, which
+from odoobaselib import DEBUG_EXEC_TIMES, logger, which
 
 # Call this file linked from another file called `build` or `entrypoint`
 mode = os.path.basename(__file__)
@@ -27,7 +28,12 @@ for executable, folder in sorted(files):
     command = os.path.join(folder, executable)
     if os.access(command, os.X_OK):
         logger.debug("Executing %s", command)
-        subprocess.check_call(command)
+        cmd = [command]
+        if DEBUG_EXEC_TIMES:
+            cmd = ["/usr/bin/time", "--"] + cmd
+            if logger.getEffectiveLevel() <= logging.DEBUG:
+                cmd.insert(1, '-v')
+        subprocess.check_call(cmd)
 
 # Allow to omit 1st command and default to `odoo`
 extra_command = sys.argv[1:]

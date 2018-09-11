@@ -31,6 +31,7 @@ ODOO_VERSION = float(os.environ["ODOO_VERSION"])
 MANIFESTS = ("__manifest__.py", "__openerp__.py")
 if ODOO_VERSION < 10:
     MANIFESTS = MANIFESTS[1:]
+DEBUG_EXEC_TIMES = os.environ.get('DEBUG_EXEC_TIMES') == 'true'
 
 # Customize logging for build
 logger = logging.getLogger("doodba")

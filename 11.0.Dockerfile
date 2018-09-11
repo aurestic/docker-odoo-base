@@ -44,18 +44,13 @@ RUN apt-get -qq update \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
         locales-all zlibc \
         bzip2 ca-certificates curl gettext-base git gnupg2 nano vim \
-        openssh-client telnet xz-utils \
+        openssh-client telnet xz-utils time \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && curl https://bootstrap.pypa.io/get-pip.py | python3 /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get update \
     && apt-get install -yqq --no-install-recommends nodejs postgresql-client \
-    && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.stretch_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c - \
-    && apt-get install -yqq --no-install-recommends ./wkhtmltox.deb \
-    && rm wkhtmltox.deb \
-    && wkhtmltopdf --version \
     && apt-get -yqq purge python2.7 \
     && apt-get -yqq autoremove \
     && rm -Rf /var/lib/apt/lists/*
@@ -86,12 +81,16 @@ RUN mkdir -p auto/addons custom/src/private \
     && ln -s $(which python3) /usr/local/bin/python \
     && sync
 
+# Special case for wkhtmltox
+RUN install-wkhtmltopdf.sh
+
 # Execute installation script by Odoo version
 # This is at the end to benefit from cache at build time
 # https://docs.docker.com/engine/reference/builder/#/impact-on-build-caching
 ARG ODOO_SOURCE=OCA/OCB
 ARG ODOO_VERSION=11.0
-ENV ODOO_VERSION="$ODOO_VERSION"
+ENV ODOO_SOURCE="$ODOO_SOURCE" \
+    ODOO_VERSION="$ODOO_VERSION"
 RUN apt-get update \
     && apt-get install -y \
         build-essential \
@@ -174,6 +173,9 @@ ONBUILD ARG LOCAL_CUSTOM_DIR=./custom
 ONBUILD COPY $LOCAL_CUSTOM_DIR /opt/odoo/custom
 # https://docs.python.org/2.7/library/logging.html#levels
 ONBUILD ARG LOG_LEVEL=INFO
+ONBUILD ARG DEBUG_EXEC_TIMES=false
+ONBUILD ENV LOG_LEVEL="$LOG_LEVEL" \
+            DEBUG_EXEC_TIMES="$DEBUG_EXEC_TIMES"
 ONBUILD RUN mkdir -p /opt/odoo/custom/ssh \
             && ln -s /opt/odoo/custom/ssh ~root/.ssh \
             && chmod -R u=rwX,go= /opt/odoo/custom/ssh \

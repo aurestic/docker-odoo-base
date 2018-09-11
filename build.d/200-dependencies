@@ -21,6 +21,8 @@ for name in INSTALLERS:
     # pip `requirements.txt` files found in repositories
     if name == "pip" and AUTO_REQUIREMENTS:
         req_files += glob(join(SRC_DIR, "*", "requirements.txt"))
+        # Search also in subdirectories
+        req_files += glob(join(SRC_DIR, "*", "*", "requirements.txt"))
     # Normal dependency installation
     req_files.append(join(CUSTOM_DIR, 'dependencies', '%s.txt' % name))
     for req_file in req_files:

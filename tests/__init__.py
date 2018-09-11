@@ -253,9 +253,6 @@ class ScaffoldingCase(unittest.TestCase):
                 ("test", "!", "-f", "custom/dependencies/gem.txt"),
                 ("test", "!", "-f", "custom/dependencies/npm.txt"),
                 ("test", "!", "-f", "custom/dependencies/pip.txt"),
-                # Patched Werkzeug version
-                ("bash", "-c", ('test "$(python -c "import werkzeug; '
-                                'print(werkzeug.__version__)")" == 0.14.1')),
                 # apt_build.txt
                 ("test", "-f", "custom/dependencies/apt_build.txt"),
                 ("test", "!", "-e", "/usr/bin/gcc"),
@@ -276,6 +273,20 @@ class ScaffoldingCase(unittest.TestCase):
                 # 270-gem.txt
                 ("test", "-f", "custom/dependencies/270-gem.txt"),
                 ("aloha_world",),
+            )
+        for sub_env in matrix(odoo={"8.0", "9.0", "10.0"}):
+            self.compose_test(
+                dependencies_dir, sub_env,
+                # Patched Werkzeug version
+                ("bash", "-c", ('test "$(python -c "import werkzeug; '
+                                'print(werkzeug.__version__)")" == 0.9.6')),
+            )
+        for sub_env in matrix(odoo_skip={"8.0", "9.0", "10.0"}):
+            self.compose_test(
+                dependencies_dir, sub_env,
+                # Patched Werkzeug version
+                ("bash", "-c", ('test "$(python -c "import werkzeug; '
+                                'print(werkzeug.__version__)")" == 0.14.1')),
             )
 
     @unittest.skipUnless(

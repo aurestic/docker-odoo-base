@@ -1,3 +1,13 @@
 #!/usr/bin/env bash
 export PYTHONOPTIMIZE=""  # You'll want to `assert` in your scripts
-exec odoo shell < "$1"
+
+ODOO_ARGS=""
+if [[ "${ODOO_VERSION}" == "8.0" ]]; then
+    ODOO_ARGS="--no-xmlrpc --stop-after-init --max-cron-threads 0 --workers 0 --logfile /dev/stdout"
+fi
+
+if [[ ${#} -ne 0 ]]; then
+    exec odoo shell ${ODOO_ARGS} < "$1"
+fi
+
+exec odoo shell ${ODOO_ARGS}

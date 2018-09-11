@@ -44,16 +44,10 @@ RUN apt-get update \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
         locales-all zlibc \
         bzip2 ca-certificates curl gettext-base git nano \
-        openssh-client telnet xz-utils \
+        openssh-client telnet xz-utils time \
     && curl https://bootstrap.pypa.io/get-pip.py | python /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get install -yqq nodejs \
-    && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.jessie_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c - \
-    && (dpkg --install wkhtmltox.deb || true) \
-    && apt-get install -yqq --no-install-recommends --fix-broken \
-    && rm wkhtmltox.deb \
-    && wkhtmltopdf --version \
     && rm -Rf /var/lib/apt/lists/*
 
 # Special case to get latest PostgreSQL client
@@ -88,18 +82,22 @@ RUN mkdir -p auto/addons custom/src/private \
     && chmod -R a+rX /usr/local/lib/python2.7/dist-packages/odoobaselib \
     && sync
 
+# Special case for wkhtmltox
+RUN install-wkhtmltopdf.sh
+
 # Execute installation script by Odoo version
 # This is at the end to benefit from cache at build time
 # https://docs.docker.com/engine/reference/builder/#/impact-on-build-caching
 ARG ODOO_SOURCE=OCA/OCB
 ARG ODOO_VERSION=10.0
-ENV ODOO_VERSION="$ODOO_VERSION"
+ENV ODOO_SOURCE="$ODOO_SOURCE" \
+    ODOO_VERSION="$ODOO_VERSION"
 RUN install.sh
 RUN pip install pg_activity
 
 # HACK Special case for Werkzeug
 USER odoo
-RUN pip install --user Werkzeug==0.14.1
+RUN pip install --user Werkzeug==0.9.6
 
 # Metadata
 ARG VCS_REF
@@ -160,6 +158,9 @@ ONBUILD ARG LOCAL_CUSTOM_DIR=./custom
 ONBUILD COPY $LOCAL_CUSTOM_DIR /opt/odoo/custom
 # https://docs.python.org/2.7/library/logging.html#levels
 ONBUILD ARG LOG_LEVEL=INFO
+ONBUILD ARG DEBUG_EXEC_TIMES=false
+ONBUILD ENV LOG_LEVEL="$LOG_LEVEL" \
+            DEBUG_EXEC_TIMES="$DEBUG_EXEC_TIMES"
 ONBUILD RUN mkdir -p /opt/odoo/custom/ssh \
             && ln -s /opt/odoo/custom/ssh ~root/.ssh \
             && chmod -R u=rwX,go= /opt/odoo/custom/ssh \

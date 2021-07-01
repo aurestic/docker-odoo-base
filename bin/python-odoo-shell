@@ -2,7 +2,7 @@
 export PYTHONOPTIMIZE=""  # You'll want to `assert` in your scripts
 
 ODOO_ARGS=""
-if [[ "${ODOO_VERSION}" == "8.0" ]]; then
+if [[ "${ODOO_VERSION}" == "11.0" ]]; then
     ODOO_ARGS="--no-xmlrpc --stop-after-init --max-cron-threads 0 --workers 0 --logfile /dev/stdout"
 fi
 

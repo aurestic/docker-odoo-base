@@ -38,6 +38,8 @@ ENV DB_FILTER=.* \
 RUN apt-get -qq update \
     && apt-get -yqq upgrade \
     && apt-get install -yqq --no-install-recommends \
+        ruby-compass \
+        ruby \
         python3 ruby-compass \
         fontconfig libfreetype6 libxml2 libxslt1.1 libjpeg62-turbo zlib1g \
         libfreetype6 liblcms2-2 libtiff5 tk tcl libpq5 \
@@ -47,7 +49,7 @@ RUN apt-get -qq update \
         openssh-client telnet xz-utils time \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && curl https://bootstrap.pypa.io/get-pip.py | python3 /dev/stdin \
+    && curl https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3 /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get update \
     && apt-get install -yqq --no-install-recommends nodejs postgresql-client \
@@ -61,7 +63,8 @@ RUN ln -s /usr/bin/nodejs /usr/local/bin/node \
     && rm -Rf ~/.npm /tmp/*
 
 # Special case to get bootstrap-sass, required by Odoo for Sass assets
-RUN gem install --no-rdoc --no-ri --no-update-sources bootstrap-sass --version '<4' \
+RUN gem install --no-rdoc --no-ri --no-update-sources autoprefixer-rails --version '<9.8.6' \
+    && gem install --no-rdoc --no-ri --no-update-sources bootstrap-sass --version '<3.4' \
     && rm -Rf ~/.gem /var/lib/gems/*/cache/
 
 # Other facilities

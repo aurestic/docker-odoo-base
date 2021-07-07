@@ -52,7 +52,7 @@ RUN apt-get -qq update \
     && curl https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3 /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get update \
-    && apt-get install -yqq --no-install-recommends nodejs postgresql-client \
+    && apt-get install -yqq --no-install-recommends nodejs postgresql-client-10 \
     && apt-get -yqq purge python2.7 \
     && apt-get -yqq autoremove \
     && rm -Rf /var/lib/apt/lists/*

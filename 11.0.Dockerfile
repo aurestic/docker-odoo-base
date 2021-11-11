@@ -44,7 +44,7 @@ RUN apt-get -qq update \
         fontconfig libfreetype6 libxml2 libxslt1.1 libjpeg62-turbo zlib1g \
         libfreetype6 liblcms2-2 libtiff5 tk tcl libpq5 \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
-        locales-all zlibc \
+        locales-all zlibc libmagic-dev \
         bzip2 ca-certificates curl gettext-base git gnupg2 nano vim \
         openssh-client telnet xz-utils time \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \

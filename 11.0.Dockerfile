@@ -44,7 +44,7 @@ RUN apt-get -qq update \
         fontconfig libfreetype6 libxml2 libxslt1.1 libjpeg62-turbo zlib1g \
         libfreetype6 liblcms2-2 libtiff5 tk tcl libpq5 \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
-        locales-all zlibc libmagic-dev \
+        locales-all zlibc \
         bzip2 ca-certificates curl gettext-base git gnupg2 nano vim \
         openssh-client telnet xz-utils time \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
@@ -102,12 +102,14 @@ RUN apt-get update \
         libldap2-dev \
         libsasl2-dev \
         libssl-dev \
+        libffi-dev \
         libxml2-dev \
         libxslt1-dev \
         python3-dev \
         zlib1g-dev \
+        libmagic-dev \
     && pip install -r https://raw.githubusercontent.com/$ODOO_SOURCE/$ODOO_VERSION/requirements.txt \
-    && pip install pg_activity \
+    && pip install pg_activity firebase-admin \
     && (python3 -m compileall -q /usr/local/lib/python3.5/ || true) \
     && apt-get purge -yqq build-essential '*-dev' \
     && apt-mark -qq manual '*' \

@@ -14,23 +14,22 @@ Usage:
 
 Arguments:
   -o, --odoo      version de odoo a hacer build
-
   -r, --rebase    actualiza el repositorio con upstream
   -g, --github    actualiza la imagen en github
   -h, --help      muestra esta ayuda y finaliza
 
 Examples:
-  ${scriptname} -o 8
-  ${scriptname} --odoo 11
-  ${scriptname} --odoo 14 --rebase --github
-  ${scriptname} --odoo 15 -g
+  ${scriptname} --rebase
+  ${scriptname} -o 11
+  ${scriptname} --odoo 14 --github
+  ${scriptname} -o 15 -g
 
 EOF
     exit 1
 }
 
-OPTIONS=o:rgh
-LONGOPTS=odoo:,rebase:,github:,help
+OPTIONS=orgh
+LONGOPTS=odoo:,rebase,github,help
 PARSED=$(getopt --options=${OPTIONS} --longoptions=${LONGOPTS} \
     --name="${scriptname}" -- "${@}")
 if [[ ${?} -ne 0 ]]; then
@@ -72,20 +71,22 @@ if [[ ${#} -gt 0 ]]; then
     exit 4
 fi
 
-if [[ -z "${odoo}" ]]; then
-    echo >&2 "${scriptname}: Missing '-o/--odoo' argument."
+if [[ -z "${odoo}" ]] && [[ ${rebase} -eq 0 ]]; then
+    echo >&2 "${scriptname}: Missing '-o/--odoo' or -r/--rebase argument."
     exit 1
 fi
 
-echo "[INFO] Backup previous image..."
-docker pull dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
-if [[ $? -eq 0 ]]; then
-    docker tag \
-        dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
-        dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup
-    echo "[INFO] Backup image: dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup"
-else
-    echo "[INFO] First time image build..."
+if [[ "${odoo}" != "" ]]; then
+    echo "[INFO] Backup previous image..."
+    docker pull dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
+    if [[ $? -eq 0 ]]; then
+        docker tag \
+            dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
+            dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup
+        echo "[INFO] Backup image: dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup"
+    else
+        echo "[INFO] First time image build..."
+    fi
 fi
 
 if [[ ${rebase} -eq 1 ]]; then
@@ -93,7 +94,7 @@ if [[ ${rebase} -eq 1 ]]; then
     git branch -D master-upd
     git fetch upstream master:master-upd
     git rebase master-upd
-    git push origin master
+    git push origin master -f
     if [[ $? -eq 0 ]]; then
         echo "[INFO] Repository updated"
     else
@@ -102,22 +103,26 @@ if [[ ${rebase} -eq 1 ]]; then
     fi
 fi
 
-echo "[INFO] Building ${odoo}.0-onbuild image..."
-docker build \
-    -t dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
-    -f ${odoo}.0.Dockerfile .
+if [[ "${odoo}" != "" ]]; then
+    echo "[INFO] Building ${odoo}.0-onbuild image..."
+    docker build \
+        -t dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
+        -f ${odoo}.0.Dockerfile .
 
-if [[ ${rebase} -eq 1 ]]; then
-    echo "[INFO] reTagging image to ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild"
-    docker tag \
-        dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
-        ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild
+    if [[ ${github} -eq 1 ]]; then
+        echo "[INFO] reTagging image to ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild"
+        docker tag \
+            dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
+            ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild
+    fi
 fi
 
-echo "[INFO] Pushing image..."
-docker push dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
-if [[ ${rebase} -eq 1 ]]; then
-    docker push ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild
+if [[ "${odoo}" != "" ]]; then
+    echo "[INFO] Pushing image..."
+    docker push dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
+    if [[ ${github} -eq 1 ]]; then
+        docker push ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild
+    fi
 fi
 
 echo "[INFO] Process end."

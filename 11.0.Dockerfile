@@ -84,7 +84,8 @@ RUN gem install --no-rdoc --no-ri --no-update-sources execjs --version '<2.9.1' 
 
 # Other facilities
 WORKDIR /opt/odoo
-RUN pip install \
+RUN pip install -U pip \
+    && pip install \
         astor \
         # Install fix from https://github.com/acsone/click-odoo-contrib/pull/93
         git+https://github.com/Tecnativa/click-odoo-contrib.git@fix-active-modules-hashing \
@@ -99,6 +100,7 @@ RUN pip install \
         wdb \
         geoip2 \
         inotify \
+        "grpcio==1.41.1" \
     && sync
 COPY bin-deprecated/* bin/* /usr/local/bin/
 COPY lib/doodbalib /usr/local/lib/python3.5/site-packages/doodbalib
@@ -182,6 +184,7 @@ ONBUILD RUN groupadd -g $GID odoo -o \
 ONBUILD ENTRYPOINT ["/opt/odoo/common/entrypoint"]
 ONBUILD CMD ["/usr/local/bin/odoo"]
 ONBUILD ARG AGGREGATE=true
+ONBUILD ARG AUTO_REQUIREMENTS=false
 ONBUILD ARG DEFAULT_REPO_PATTERN="https://github.com/OCA/{}.git"
 ONBUILD ARG DEFAULT_REPO_PATTERN_ODOO="https://github.com/OCA/OCB.git"
 ONBUILD ARG DEPTH_DEFAULT=1

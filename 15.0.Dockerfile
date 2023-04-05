@@ -71,6 +71,7 @@ RUN apt-get -qq update \
         openssh-client \
         telnet \
         vim \
+        iputils-ping \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update \

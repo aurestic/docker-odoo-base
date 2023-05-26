@@ -8,6 +8,8 @@ RUN useradd -md /home/odoo -s /bin/false odoo \
 VOLUME ["/var/lib/odoo"]
 EXPOSE 8069 8072
 
+COPY force-yes /etc/apt/apt.conf.d/force-yes
+
 ARG WKHTMLTOPDF_VERSION=0.12.5
 ARG WKHTMLTOPDF_CHECKSUM='2583399a865d7604726da166ee7cec656b87ae0a6016e6bce7571dcd3045f98b'
 ENV DB_FILTER=.* \
@@ -33,26 +35,30 @@ ENV DB_FILTER=.* \
     WDB_WEB_PORT=1984 \
     WDB_WEB_SERVER=localhost
 
+# Debian stretch was moved to archive (and stretch-updates does not exist in archive)
+RUN sed -i 's,http://deb.debian.org,http://archive.debian.org,g;s,http://security.debian.org,http://archive.debian.org,g;s,\(.*stretch-updates\),#\1,' /etc/apt/sources.list \
+    && sed -i 's,.*jessie-updates.*,,g' /etc/apt/sources.list
+
 # Other requirements and recommendations to run Odoo
 # See https://github.com/$ODOO_SOURCE/blob/$ODOO_VERSION/debian/control
 RUN apt-get update \
     && apt-get -y upgrade \
     && apt-get install -y --no-install-recommends \
-        python ruby-compass \
+        python ruby-compass ruby-dev \
         fontconfig libfreetype6 libxml2 libxslt1.1 libjpeg62-turbo zlib1g \
         libfreetype6 liblcms2-2 libopenjpeg5 libtiff5 tk tcl libpq5 \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
         locales-all zlibc \
         bzip2 ca-certificates curl gettext-base git nano \
-        openssh-client telnet xz-utils time \
-    && curl https://bootstrap.pypa.io/get-pip.py | python /dev/stdin \
+        openssh-client telnet xz-utils time build-essential \
+    && curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get install -yqq nodejs \
     && rm -Rf /var/lib/apt/lists/*
 
 # Special case to get latest PostgreSQL client
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
-    && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+RUN echo 'deb http://apt-archive.postgresql.org/pub/repos/apt/ jessie-pgdg-archive main' >> /etc/apt/sources.list.d/postgresql.list \
+    && curl -kSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update \
     && apt-get install -y --no-install-recommends postgresql-client \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
@@ -63,7 +69,9 @@ RUN ln -s /usr/bin/nodejs /usr/local/bin/node \
     && rm -Rf ~/.npm /tmp/*
 
 # Special case to get bootstrap-sass, required by Odoo for Sass assets
-RUN gem install --no-rdoc --no-ri --no-update-sources bootstrap-sass --version '<4' \
+RUN gem install --no-rdoc --no-ri --no-update-sources \
+        autoprefixer-rails:'9.8.5' \
+        bootstrap-sass:'3.3.7' \
     && rm -Rf ~/.gem /var/lib/gems/*/cache/
 
 # Other facilities
@@ -89,7 +97,7 @@ RUN install-wkhtmltopdf.sh
 # This is at the end to benefit from cache at build time
 # https://docs.docker.com/engine/reference/builder/#/impact-on-build-caching
 ARG ODOO_SOURCE=OCA/OCB
-ARG ODOO_VERSION=10.0
+ARG ODOO_VERSION=8.0
 ENV ODOO_SOURCE="$ODOO_SOURCE" \
     ODOO_VERSION="$ODOO_VERSION"
 RUN install.sh

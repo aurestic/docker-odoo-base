@@ -1,0 +1,5 @@
+APT {
+    Get {
+        force-yes "true";
+    };
+};

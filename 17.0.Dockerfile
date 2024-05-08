@@ -73,7 +73,8 @@ RUN echo "LAST_SYSTEM_UID=$LAST_SYSTEM_UID\nLAST_SYSTEM_GID=$LAST_SYSTEM_GID\nFI
         npm \
         openssh-client \
         telnet \
-        vim
+        vim \
+        iputils-ping
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update \
@@ -200,6 +201,7 @@ ONBUILD RUN groupadd -g $GID odoo -o \
 ONBUILD ENTRYPOINT ["/opt/odoo/common/entrypoint"]
 ONBUILD CMD ["/usr/local/bin/odoo"]
 ONBUILD ARG AGGREGATE=true
+ONBUILD ARG AUTO_REQUIREMENTS=false
 ONBUILD ARG DEFAULT_REPO_PATTERN="https://github.com/OCA/{}.git"
 ONBUILD ARG DEFAULT_REPO_PATTERN_ODOO="https://github.com/OCA/OCB.git"
 ONBUILD ARG DEPTH_DEFAULT=1

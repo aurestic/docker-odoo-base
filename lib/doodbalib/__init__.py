@@ -33,6 +33,7 @@ else:
 
 CLEAN = os.environ.get("CLEAN") == "true"
 AUTO_REQUIREMENTS = os.environ.get("AUTO_REQUIREMENTS") == "true"
+AGGREGATE = os.environ.get("AGGREGATE") == "true"
 LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
 FILE_APT_BUILD = os.path.join(CUSTOM_DIR, "dependencies", "apt_build.txt")
 PRIVATE = "private"

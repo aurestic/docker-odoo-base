@@ -5,7 +5,9 @@
 from glob import glob
 from os.path import basename, join, splitext
 
-from doodbalib import AUTO_REQUIREMENTS, CUSTOM_DIR, FILE_APT_BUILD, SRC_DIR
+from doodbalib import (
+    AGGREGATE, AUTO_REQUIREMENTS, CUSTOM_DIR, FILE_APT_BUILD, SRC_DIR
+)
 from doodbalib.installer import INSTALLERS, install, logger
 
 # Build dependencies installed before any others
@@ -15,8 +17,12 @@ for name in INSTALLERS:
     req_files = []
     if name == "pip" and AUTO_REQUIREMENTS:
         req_files += glob(join(SRC_DIR, "*", "requirements.txt"))
+        if not AGGREGATE:  # devel case
+            req_files += glob(join(SRC_DIR, "*", "test-requirements.txt"))
         # Search also in subdirectories
         req_files += glob(join(SRC_DIR, "*", "*", "requirements.txt"))
+        if not AGGREGATE:  # devel case
+            req_files += glob(join(SRC_DIR, "*", "*", "test-requirements.txt"))
     # Normal dependency installation
     req_files.append(join(CUSTOM_DIR, "dependencies", "%s.txt" % name))
     for req_file in req_files:

@@ -109,6 +109,11 @@ if [[ "${odoo}" != "" ]]; then
         -t dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
         -f ${odoo}.0.Dockerfile .
 
+    if [[ $? -ne 0 ]]; then
+        echo "Revisar error. Saliendo."
+        exit 1
+    fi
+
     if [[ ${github} -eq 1 ]]; then
         echo "[INFO] reTagging image to ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild"
         docker tag \

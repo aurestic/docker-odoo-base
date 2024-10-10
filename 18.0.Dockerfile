@@ -2,7 +2,7 @@ FROM python:3.10-slim-bookworm AS base
 
 EXPOSE 8069 8072
 
-ARG TARGETARCH
+ARG TARGETARCH=amd64
 ARG GEOIP_UPDATER_VERSION=6.0.0
 ARG WKHTMLTOPDF_VERSION=0.12.6.1
 ARG WKHTMLTOPDF_AMD64_CHECKSUM='98ba0d157b50d36f23bd0dedf4c0aa28c7b0c50fcdcdc54aa5b6bbba81a3941d'
@@ -73,7 +73,9 @@ RUN echo "LAST_SYSTEM_UID=$LAST_SYSTEM_UID\nLAST_SYSTEM_GID=$LAST_SYSTEM_GID\nFI
         npm \
         openssh-client \
         telnet \
-        vim
+        vim \
+        iputils-ping \
+        net-tools
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update \
@@ -200,6 +202,7 @@ ONBUILD RUN groupadd -g $GID odoo -o \
 ONBUILD ENTRYPOINT ["/opt/odoo/common/entrypoint"]
 ONBUILD CMD ["/usr/local/bin/odoo"]
 ONBUILD ARG AGGREGATE=true
+ONBUILD ARG AUTO_REQUIREMENTS=false
 ONBUILD ARG DEFAULT_REPO_PATTERN="https://github.com/OCA/{}.git"
 ONBUILD ARG DEFAULT_REPO_PATTERN_ODOO="https://github.com/OCA/OCB.git"
 ONBUILD ARG DEPTH_DEFAULT=1
@@ -253,7 +256,7 @@ ONBUILD RUN [ -d ~root/.ssh ] && rm -r ~root/.ssh; \
             && ln -s /opt/odoo/custom/ssh ~root/.ssh \
             && chmod -R u=rwX,go= /opt/odoo/custom/ssh \
             && sync
-ONBUILD ARG DB_VERSION=latest
+ONBUILD ARG DB_VERSION="16"
 ONBUILD RUN /opt/odoo/common/build && sync
 ONBUILD VOLUME ["/var/lib/odoo"]
 ONBUILD USER odoo

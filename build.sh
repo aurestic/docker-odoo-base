@@ -78,12 +78,12 @@ fi
 
 if [[ "${odoo}" != "" ]]; then
     echo "[INFO] Backup previous image..."
-    docker pull dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
+    docker pull portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
     if [[ $? -eq 0 ]]; then
         docker tag \
-            dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
-            dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup
-        echo "[INFO] Backup image: dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup"
+            portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
+            portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup
+        echo "[INFO] Backup image: portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild-backup"
     else
         echo "[INFO] First time image build..."
     fi
@@ -106,7 +106,7 @@ fi
 if [[ "${odoo}" != "" ]]; then
     echo "[INFO] Building ${odoo}.0-onbuild image..."
     docker build \
-        -t dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
+        -t portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
         -f ${odoo}.0.Dockerfile .
 
     if [[ $? -ne 0 ]]; then
@@ -117,14 +117,14 @@ if [[ "${odoo}" != "" ]]; then
     if [[ ${github} -eq 1 ]]; then
         echo "[INFO] reTagging image to ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild"
         docker tag \
-            dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
+            portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
             ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild
     fi
 fi
 
 if [[ "${odoo}" != "" ]]; then
     echo "[INFO] Pushing image..."
-    docker push dockermaster.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
+    docker push portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild
     if [[ ${github} -eq 1 ]]; then
         docker push ghcr.io/aurestic/odoo-base:${odoo}.0-onbuild
     fi

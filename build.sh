@@ -6,6 +6,7 @@ scriptpath=$(dirname "$(readlink -e -- "${0}")")
 odoo=""
 rebase=0
 github=0
+cache=0
 
 print_help() {
     cat >&2 <<EOF
@@ -16,6 +17,9 @@ Arguments:
   -o, --odoo      version de odoo a hacer build
   -r, --rebase    actualiza el repositorio con upstream
   -g, --github    actualiza la imagen en github
+
+  --cache         fuerza el build sin caché
+
   -h, --help      muestra esta ayuda y finaliza
 
 Examples:
@@ -29,7 +33,7 @@ EOF
 }
 
 OPTIONS=orgh
-LONGOPTS=odoo:,rebase,github,help
+LONGOPTS=odoo:,rebase,github,cache,help
 PARSED=$(getopt --options=${OPTIONS} --longoptions=${LONGOPTS} \
     --name="${scriptname}" -- "${@}")
 if [[ ${?} -ne 0 ]]; then
@@ -50,6 +54,10 @@ while :; do
         ;;
     -g | --github)
         github=1
+        shift
+        ;;
+    --cache)
+        cache=1
         shift
         ;;
     -h | --help)
@@ -104,8 +112,13 @@ if [[ ${rebase} -eq 1 ]]; then
 fi
 
 if [[ "${odoo}" != "" ]]; then
+    build_args=""
+    if [ "$cache" -eq 1 ]; then
+        build_args="--no-cache"
+    fi
+
     echo "[INFO] Building ${odoo}.0-onbuild image..."
-    docker build \
+    docker build $build_args \
         -t portus.aurestic.com/nubeaerp/odoo-base:${odoo}.0-onbuild \
         -f ${odoo}.0.Dockerfile .
 

@@ -83,17 +83,17 @@ jobs:
       matrix:
         # Test modern Odoo versions with latest Postgres version
         odoo_version: ["18.0"]
-        platforms: ["linux/amd64,linux/arm64"]
+        platforms: ["linux/amd64"]
         include:
           # Older odoo versions don't support latest postgres and Python versions
           - odoo_version: "17.0"
-            platforms: "linux/amd64,linux/arm64"
+            platforms: "linux/amd64"
           - odoo_version: "16.0"
-            platforms: "linux/amd64,linux/arm64"
+            platforms: "linux/amd64"
           - odoo_version: "15.0"
-            platforms: "linux/amd64,linux/arm64"
+            platforms: "linux/amd64"
           - odoo_version: "14.0"
-            platforms: "linux/amd64,linux/arm64"
+            platforms: "linux/amd64"
     env:
       # Define the docker hub repository location and github container registry host
       DOCKER_REPO: nubeaerp/odoo-base

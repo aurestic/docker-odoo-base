@@ -1,0 +1,149 @@
+name: ci
+
+on:
+  schedule:
+    # See https://crontab.guru/weekly
+    - cron: 0 0 * * 0
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Set PY
+        run:
+          echo "PY=$(python -c 'import hashlib,
+          sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
+          >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - uses: pre-commit/action@v3.0.0
+
+  test:
+    runs-on: ubuntu-22.04
+    needs: pre-commit
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test modern Odoo versions with latest Postgres version
+        odoo_version: ["18.0"]
+        pg_version: ["16"]
+        python_version: ["3.10"]
+        include:
+          # Older odoo versions don't support latest postgres and Python versions
+          - odoo_version: "17.0"
+            pg_version: "15"
+            python_version: "3.10"
+          - odoo_version: "16.0"
+            pg_version: "15"
+            python_version: "3.10"
+          - odoo_version: "15.0"
+            pg_version: "13"
+            python_version: "3.9"
+          - odoo_version: "14.0"
+            pg_version: "13"
+            python_version: "3.9"
+    env:
+      # Other variables to configure tests and execution environment
+      DOCKER_BUILDKIT: 1
+      PG_VERSIONS: ${{ matrix.pg_version }}
+      ODOO_MINOR: ${{ matrix.odoo_version }}
+      DOCKER_TAG: ${{ matrix.odoo_version }}
+    steps:
+      # Prepare
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python_version }}
+      # Install dev and test dependencies
+      - run: pip install poetry
+      - name: Patch $PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      # override pyyaml to 5.3.1 as PIP_CONSTRAINT does not work for poetry
+      # to get rid of AttributeError: cython_sources when installing pyyaml
+      - run: poetry add pyyaml==5.3.1
+      - run: poetry install
+      # Test
+      - run: poetry run python -m unittest -v tests
+
+  build-push:
+    runs-on: ubuntu-22.04
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test modern Odoo versions with latest Postgres version
+        odoo_version: ["18.0"]
+        platforms: ["linux/amd64,linux/arm64"]
+        include:
+          # Older odoo versions don't support latest postgres and Python versions
+          - odoo_version: "17.0"
+            platforms: "linux/amd64,linux/arm64"
+          - odoo_version: "16.0"
+            platforms: "linux/amd64,linux/arm64"
+          - odoo_version: "15.0"
+            platforms: "linux/amd64,linux/arm64"
+          - odoo_version: "14.0"
+            platforms: "linux/amd64,linux/arm64"
+    env:
+      # Define the docker hub repository location and github container registry host
+      DOCKER_REPO: nubeaerp/odoo-base
+      REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+      REGISTRY_ACTOR: ${{ secrets.REGISTRY_ACTOR }}
+      REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+    steps:
+      - name: Clean Docker system before build
+        run: |
+          docker system prune -af || true
+          docker builder prune -af || true
+      # Set build date as env variable to be used later
+      - name: Set build date
+        run: echo "BUILD_DATE=$(date '+%Y-%m-%dT%H:%M:%S.%N%:z')" >> $GITHUB_ENV
+      # Prepare
+      - uses: actions/checkout@v4
+      # Setup QEMU
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      # Setup buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        if:
+          github.repository == 'nubeaerp/odoo-base' && github.ref == 'refs/heads/master'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_TOKEN }}
+          password: ${{ secrets.REGISTRY_ACTOR }}
+      # - name: Login to GitHub Container Registry
+      #   if: github.repository == 'nubeaerp/odoo-base' && github.ref == 'refs/heads/master'
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ secrets.BOT_LOGIN }}
+      #     password: ${{ secrets.BOT_TOKEN }}
+      - name: Build base image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./${{ matrix.odoo_version }}.Dockerfile
+          platforms: ${{ matrix.platforms }}
+          push:
+            ${{ github.repository == 'nubeaerp/odoo-base' && github.ref ==
+            'refs/heads/master' }}
+          tags: |
+            ${{ env.REGISTRY_URL }}/${{ env.DOCKER_REPO }}:${{ matrix.odoo_version }}-onbuild
+          target: onbuild
+          build-args: |
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ env.BUILD_DATE }}
+            ODOO_VERSION=${{ matrix.odoo_version }}
+      - name: Clean Docker system after build
+        run: |
+          docker system prune -af || true
+          docker builder prune -af || true

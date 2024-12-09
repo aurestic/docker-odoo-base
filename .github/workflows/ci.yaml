@@ -1,6 +1,10 @@
 name: ci
 
 on:
+  pull_request:
+  push:
+    branches:
+      - master
   schedule:
     # See https://crontab.guru/weekly
     - cron: 0 0 * * 0

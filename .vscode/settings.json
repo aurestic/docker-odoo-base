@@ -1,17 +1,25 @@
 {
-  "python.autoComplete.extraPaths": ["./lib", "./tests"],
+  "python.autoComplete.extraPaths": [
+    "./lib",
+    "./tests"
+  ],
   "editor.formatOnSaveTimeout": 1000,
   "python.formatting.provider": "black",
   "python.formatting.blackArgs": [],
-  "python.linting.flake8Args": ["--max-line-length=88"],
+  "python.linting.flake8Args": [
+    "--max-line-length=88"
+  ],
   "python.linting.flake8Enabled": true,
   "python.linting.pylintEnabled": true,
   "python.pythonPath": "python3",
   "editor.formatOnSave": true,
-
   "[dockerfile]": {
     "editor.formatOnSave": false
   },
-  "python.analysis.extraPaths": ["./lib", "./tests"],
-  "python.languageServer": "None"
+  "python.analysis.extraPaths": [
+    "./lib",
+    "./tests"
+  ],
+  "python.languageServer": "None",
+  "Odoo.selectedConfiguration": -1
 }

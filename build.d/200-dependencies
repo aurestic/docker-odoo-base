@@ -27,7 +27,11 @@ for name in INSTALLERS:
     # Normal dependency installation
     req_files.append(join(CUSTOM_DIR, "dependencies", "%s.txt" % name))
     for req_file in req_files:
-        install(name, req_file)
+        install(
+            name,
+            req_file,
+            constraint_path=glob(join(SRC_DIR, "odoo", "requirements.txt"))[0],
+        )
 
 # Sorted dependencies installation
 dep_files = sorted(glob(join(CUSTOM_DIR, "dependencies", "[0-9]*-*")))

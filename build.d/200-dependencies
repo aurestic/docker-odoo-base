@@ -27,10 +27,11 @@ for name in INSTALLERS:
     # Normal dependency installation
     req_files.append(join(CUSTOM_DIR, "dependencies", "%s.txt" % name))
     for req_file in req_files:
+        odoo_req = glob(join(SRC_DIR, "odoo", "requirements.txt"))
         install(
             name,
             req_file,
-            constraint_path=glob(join(SRC_DIR, "odoo", "requirements.txt"))[0],
+            constraint_path=name == "pip" and odoo_req and odoo_req[0] or None,
         )
 
 # Sorted dependencies installation

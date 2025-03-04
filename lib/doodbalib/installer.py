@@ -13,7 +13,7 @@ class Installer(object):
     _install_command = None
     _remove_command = None
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, **kwargs):
         self.file_path = file_path
         self._requirements = self.requirements()
 
@@ -98,10 +98,35 @@ class NpmInstaller(Installer):
 
 class PipInstaller(Installer):
     _install_command = ["pip", "install", "--no-cache-dir", "-r"]
+    _constraint_command = ["-c"]
+
+    def __init__(self, file_path, constraint_path=None, **kwargs):
+        super().__init__(file_path, constraint_path=constraint_path, **kwargs)
+        self.constraint_path = constraint_path
+        self._constraints = self.constraints()
+
+    def install(self):
+        """Install the requirements with constraints from the given file."""
+        if self._requirements and self._constraints:
+            return not self._run_command(
+                self._install_command
+                + self._requirements
+                + self._constraint_command
+                + self._constraints
+            )
+        return super().install()
 
     def requirements(self):
         """Pip will use its ``--requirements`` feature."""
         return [self.file_path] if exists(self.file_path) else []
+
+    def constraints(self):
+        """Pip will use its ``--constraint`` feature."""
+        return (
+            [self.constraint_path]
+            if self.constraint_path and exists(self.constraint_path)
+            else []
+        )
 
 
 INSTALLERS = OrderedDict(
@@ -114,6 +139,9 @@ INSTALLERS = OrderedDict(
 )
 
 
-def install(installer, file_path):
+def install(installer, file_path, constraint_path=None):
     """Perform a given type of installation from a given file."""
-    return INSTALLERS[installer](file_path).install()
+    return INSTALLERS[installer](
+        file_path,
+        constraint_path=constraint_path,
+    ).install()

@@ -8,10 +8,10 @@
   "python.linting.pylintEnabled": true,
   "python.pythonPath": "python3",
   "editor.formatOnSave": true,
-
   "[dockerfile]": {
     "editor.formatOnSave": false
   },
   "python.analysis.extraPaths": ["./lib", "./tests"],
-  "python.languageServer": "None"
+  "python.languageServer": "None",
+  "Odoo.selectedConfiguration": -1
 }

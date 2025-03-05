@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 # Copyright 2017 LasLabs Inc.
 
+import logging
 from glob import glob
 from os.path import basename, join, splitext
 
-from doodbalib import CUSTOM_DIR, FILE_APT_BUILD, SRC_DIR
+from doodbalib import CUSTOM_DIR, FILE_APT_BUILD
 from doodbalib.installer import INSTALLERS, install, logger
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Build dependencies installed before any others
 install("apt", FILE_APT_BUILD)
@@ -16,7 +19,16 @@ for name in INSTALLERS:
     # Normal dependency installation
     req_files.append(join(CUSTOM_DIR, "dependencies", "%s.txt" % name))
     for req_file in req_files:
-        install(name, req_file)
+        odoo_req = glob(join(CUSTOM_DIR, "dependencies", "odoo", "requirements.txt"))
+        if odoo_req:
+            logging.info("AQUIIIIII: %s", odoo_req[0])
+        else:
+            logging.info("NADA HIJO: %s", req_file)
+        install(
+            name,
+            req_file,
+            constraint_path=name == "pip" and odoo_req and odoo_req[0] or None,
+        )
 
 # Sorted dependencies installation
 dep_files = sorted(glob(join(CUSTOM_DIR, "dependencies", "[0-9]*-*")))
